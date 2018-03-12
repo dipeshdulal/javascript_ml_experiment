@@ -8,6 +8,7 @@ export default class FeedForward{
 
         this.w_ih = math.random([no_hidden, no_input]);
         this.w_ho = math.random([no_output, no_hidden]);
+        this.bias = math.random([no_hidden, 1]);
     }
 
     sigmoid(x){
@@ -24,7 +25,7 @@ export default class FeedForward{
     // forward pass in the neural network
     forwardPass(inputs){
         this.input = math.matrix(inputs, "sparse");
-        this.h_input = math.chain(this.w_ih).multiply(this.input).done();
+        this.h_input = math.chain(this.w_ih).multiply(this.input).add(this.bias).done();
         this.h_output = this.sigmoid(this.h_input);
 
         let op = math.chain(this.w_ho).multiply(this.h_output).done();
@@ -45,8 +46,6 @@ export default class FeedForward{
         let error_ho = math.chain(this.w_ho).transpose().multiply(error).done();
 
         this.w_ho = math.subtract(this.w_ho, grad); 
-
-
         grad = math.chain(error_ho)
                     .dotMultiply(lr)
                     .dotMultiply(this.delSigmoid(this.h_output))
@@ -54,6 +53,13 @@ export default class FeedForward{
                     .done();
         
         this.w_ih = math.subtract(this.w_ih, grad);
+
+        grad = math.chain(error_ho)
+                   .dotMultiply(lr)
+                   .dotMultiply(this.delSigmoid(this.h_output))
+                   .done();
+        this.bias = math.subtract(this.bias, grad);
+        
     }
 
     // train
